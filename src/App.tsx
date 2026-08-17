@@ -13,6 +13,8 @@ import {
   ListItemText,
   Divider,
   InputAdornment,
+  Toolbar,
+  AppBar,
 } from "@mui/material";
 import {
   MenuOpen,
@@ -78,6 +80,24 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <AppBar position="static" elevation={0}>
+        <Toolbar>
+          {!leftOpen && (
+            <IconButton onClick={() => setLeftOpen(true)}>
+              <Menu />
+            </IconButton>
+          )}
+          <Box sx={{ flexGrow: 1 }} />
+          {!rightOpen && (
+            <IconButton
+              onClick={() => setRightOpen(!rightOpen)}
+              color="success"
+            >
+              <SearchIcon />
+            </IconButton>
+          )}
+        </Toolbar>
+      </AppBar>
       <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
         {/* left drawer */}
         <Drawer
@@ -122,23 +142,6 @@ export default function App() {
             overflow: "auto",
           }}
         >
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            {!leftOpen && (
-              <IconButton onClick={() => setLeftOpen(true)}>
-                <Menu />
-              </IconButton>
-            )}
-            <Box sx={{ flexGrow: 1 }} />
-            {!rightOpen && (
-              <IconButton
-                onClick={() => setRightOpen(!rightOpen)}
-                color="success"
-              >
-                <SearchIcon />
-              </IconButton>
-            )}
-          </Box>
-
           <Box
             className="markdown-body"
             sx={{
