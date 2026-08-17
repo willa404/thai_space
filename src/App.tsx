@@ -36,13 +36,6 @@ export default function App() {
   );
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<NoteDocument[]>([]);
-  // const [selectedNote, setSelectedNote] = useState<{
-  //   title: string;
-  //   content: string;
-  // } | null>(null);
-  // const handleSelectNote = (note: { title: string; content: string }) => {
-  //   setSelectedNote(note);
-  // };
   const tree = useMemo(() => buildDirectoryTree(), []);
   const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
