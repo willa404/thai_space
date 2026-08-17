@@ -80,7 +80,7 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="static" elevation={0}>
+      <AppBar elevation={0}>
         <Toolbar>
           {!leftOpen && (
             <IconButton onClick={() => setLeftOpen(true)}>
@@ -98,7 +98,14 @@ export default function App() {
           )}
         </Toolbar>
       </AppBar>
-      <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+      <Box
+        sx={{
+          display: "flex",
+          height: "100vh",
+          overflow: "hidden",
+          border: "none",
+        }}
+      >
         {/* left drawer */}
         <Drawer
           variant="persistent"
@@ -131,7 +138,6 @@ export default function App() {
           <Divider />
           <Box sx={{ overflow: "auto" }}>{renderTree(tree)}</Box>
         </Drawer>
-
         {/* reading area */}
         <Box
           sx={{
@@ -159,7 +165,6 @@ export default function App() {
             </ReactMarkdown>
           </Box>
         </Box>
-
         {/* right drawer: global search bar */}
         <Drawer
           variant="persistent"

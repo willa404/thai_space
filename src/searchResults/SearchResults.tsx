@@ -3,12 +3,12 @@ import { HighlightText } from "./HighlightText";
 import type { NoteDocument } from "../utils/notesManager";
 import { getSnippet } from "./getSnippet";
 import { theme } from "../theme";
-interface SearchResultsProps {
+interface ISearchResultsProps {
   searchResults: NoteDocument[];
   searchTerm: string;
   onSelectNote: (content: string) => void;
 }
-export const SearchResults: React.FC<SearchResultsProps> = ({
+export const SearchResults: React.FC<ISearchResultsProps> = ({
   searchResults,
   searchTerm,
   onSelectNote,

@@ -1,12 +1,12 @@
 import React from "react";
 import { Box } from "@mui/material";
 
-interface HighlightTextProps {
+interface IHighlightTextProps {
   text: string;
   highlight: string;
 }
 
-export const HighlightText: React.FC<HighlightTextProps> = ({
+export const HighlightText: React.FC<IHighlightTextProps> = ({
   text,
   highlight,
 }) => {
