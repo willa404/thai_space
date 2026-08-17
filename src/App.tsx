@@ -56,11 +56,12 @@ export default function App() {
       {Object.values(nodes).map((node) => (
         <React.Fragment key={node.name}>
           <ListItem
-            onClick={() =>
-              node.path &&
-              setCurrentContent(node.content || "") &&
-              setLeftOpen(false)
-            }
+            onClick={() => {
+              if (node.path) {
+                setCurrentContent(node.content || "");
+                setLeftOpen(false);
+              }
+            }}
             sx={{
               pl: node.path ? 5 : 1,
               py: 0,
@@ -108,6 +109,7 @@ export default function App() {
       >
         {/* left drawer */}
         <Drawer
+          transitionDuration={{ enter: 300, exit: 800 }}
           variant="persistent"
           anchor="left"
           open={leftOpen}
