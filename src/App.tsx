@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import type { NoteDocument } from "./utils/notesManager";
 import {
   ThemeProvider,
   CssBaseline,
@@ -26,10 +25,20 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { theme } from "./theme";
 import { initSearchEngine, searchNotes } from "./utils/notesManager";
-import { buildDirectoryTree, type NoteNode } from "./utils/buildDirectoryTree";
+import { buildDirectoryTree } from "./utils/buildDirectoryTree";
 import { SearchResults } from "./searchResults/SearchResults";
+import type { TreeNode } from "./utils/type";
+
 const LEFT_DRAWER_WIDTH = 280;
 const RIGHT_DRAWER_WIDTH = 360;
+
+// 1. Import raw markdown files using Vite's eager glob
+const markdownFiles = import.meta.glob("./assets/notes/**/*.md", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
 export default function App() {
   const [leftOpen, setLeftOpen] = useState<boolean>(true);
   const [rightOpen, setRightOpen] = useState<boolean>(false);
@@ -37,47 +46,76 @@ export default function App() {
     "# 欢迎来到泰语学习笔记\n请在左侧选择笔记。",
   );
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<NoteDocument[]>([]);
-  const tree = useMemo(() => buildDirectoryTree(), []);
+  const [searchResults, setSearchResults] = useState<TreeNode[]>([]);
+
+  // 2. Pass markdownFiles into buildDirectoryTree
+  const tree = useMemo(() => buildDirectoryTree(markdownFiles), []);
+
   const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
     if (term.length > 1) {
       const results = await searchNotes(term);
-      console.log("handleSearch searchResults", results);
-
       setSearchResults(results);
     } else {
       setSearchResults([]);
     }
   };
-  const renderTree = (nodes: Record<string, NoteNode>) => (
-    <List>
-      {Object.values(nodes).map((node) => (
-        <React.Fragment key={node.name}>
-          <ListItem
-            onClick={() => {
-              if (node.path) {
-                setCurrentContent(node.content || "");
-                setLeftOpen(false);
-              }
-            }}
-            sx={{
-              pl: node.path ? 5 : 1,
-              py: 0,
-              cursor: node.path ? "pointer" : "default",
-            }}
-          >
-            <ListItemText primary={node.name} />
-          </ListItem>
-          {node.children && renderTree(node.children)}
-        </React.Fragment>
-      ))}
+
+  // 3. Render Tree supporting Array nodes & Level-based padding
+  const renderTree = (nodes: TreeNode[], level = 0) => (
+    <List disablePadding>
+      {nodes.map((node) => {
+        const isSelectable = Boolean(node.content);
+
+        return (
+          <React.Fragment key={node.id}>
+            <ListItem
+              onClick={() => {
+                if (isSelectable) {
+                  setCurrentContent(node.content || "");
+                  setLeftOpen(false); // Auto-close left drawer on selection
+                }
+              }}
+              sx={{
+                pl: level * 2 + 2, // Indent dynamically based on hierarchy depth (0, 2, 4...)
+                py: 0.25,
+                cursor: isSelectable ? "pointer" : "default",
+                "&:hover": isSelectable
+                  ? { backgroundColor: "action.hover" }
+                  : undefined,
+              }}
+            >
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: level === 0 ? "1.25rem" : "1rem",
+                    fontWeight: level === 1 ? "normal" : "bold",
+                  },
+                }}
+                primary={node.name}
+                slotProps={{
+                  primary: {
+                    variant: level === 0 ? "subtitle2" : "body2",
+                  },
+                }}
+              />
+            </ListItem>
+
+            {/* Recursively render child nodes if present */}
+            {node.children &&
+              node.children.length > 0 &&
+              renderTree(node.children, level + 1)}
+          </React.Fragment>
+        );
+      })}
     </List>
   );
+
   useEffect(() => {
     initSearchEngine();
   }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -107,7 +145,7 @@ export default function App() {
           border: "none",
         }}
       >
-        {/* left drawer */}
+        {/* Left Drawer */}
         <Drawer
           transitionDuration={{ enter: 300, exit: 800 }}
           variant="persistent"
@@ -138,13 +176,17 @@ export default function App() {
             </IconButton>
           </Box>
           <Divider />
-          <Box sx={{ overflow: "auto" }}>{renderTree(tree)}</Box>
+          <Box sx={{ overflow: "auto", flexGrow: 1, py: 1 }}>
+            {renderTree(tree)}
+          </Box>
         </Drawer>
-        {/* reading area */}
+
+        {/* Reading Area */}
         <Box
           sx={{
             flexGrow: 1,
             p: 4,
+            pt: 10,
             display: "flex",
             flexDirection: "column",
             overflow: "auto",
@@ -167,7 +209,8 @@ export default function App() {
             </ReactMarkdown>
           </Box>
         </Box>
-        {/* right drawer: global search bar */}
+
+        {/* Right Drawer: Global Search Bar */}
         <Drawer
           variant="persistent"
           anchor="right"
@@ -213,7 +256,12 @@ export default function App() {
           <SearchResults
             searchResults={searchResults}
             searchTerm={searchTerm}
-            onSelectNote={setCurrentContent}
+            onSelectNote={(note) => {
+              if (note.content) {
+                setCurrentContent(note.content);
+                setRightOpen(false);
+              }
+            }}
           />
         </Drawer>
       </Box>
